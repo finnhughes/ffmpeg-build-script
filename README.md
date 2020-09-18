@@ -25,12 +25,13 @@ because I don't have the resources and the time to maintain other systems.
 * `aom`: AV1 Video Codec (Experimental and very slow!)
 * `fdk_aac`: Fraunhofer FDK AAC Codec 
 * `xvidcore`: MPEG-4 video coding standard
-* `webm`: WebM is a video file format
+* `VP8/VP9/webm`: VP8 / VP9 Video Codec for the WebM video file format
 * `mp3`: MPEG-1 or MPEG-2 Audio Layer III
 * `ogg`: Free, open container format
 * `vorbis`: Lossy audio compression format
 * `theora`: Free lossy video compression format
 * `opus`: Lossy audio coding format
+* `srt`: Secure Reliable Transport
 * `nv-codec`: [NVIDIA's GPU accelerated video codecs](https://devblogs.nvidia.com/nvidia-ffmpeg-transcoding-guide/). Installation is triggered only if CUDA installation is detected, follow [these](#Cuda-installation) instructions for installation. Supported codecs in nvcodec:
     * Decoders
         * H264 `h264_cuvid`

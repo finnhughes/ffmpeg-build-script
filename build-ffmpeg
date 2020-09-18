@@ -2,7 +2,7 @@
 
 # https://github.com/markus-perl/ffmpeg-build-script
 
-VERSION=1.11
+VERSION=1.16
 CWD=$(pwd)
 PACKAGES="$CWD/packages"
 WORKSPACE="$CWD/workspace"
@@ -115,7 +115,7 @@ command_exists() {
 
 
 build_done () {
-	touch "$PACKAGES/$1.done"
+    touch "$PACKAGES/$1.done"
 }
 
 echo "ffmpeg-build-script v$VERSION"
@@ -166,7 +166,7 @@ if ! command_exists "curl"; then
 fi
 
 if build "yasm"; then
-	download "http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz" "yasm-1.3.0.tar.gz"
+	download "https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz" "yasm-1.3.0.tar.gz"
 	cd "$PACKAGES"/yasm-1.3.0 || exit
 	execute ./configure --prefix="${WORKSPACE}"
 	execute make -j $MJOBS
@@ -184,7 +184,7 @@ if build "nasm"; then
 fi
 
 if build "opencore"; then
-	download "http://downloads.sourceforge.net/project/opencore-amr/opencore-amr/opencore-amr-0.1.5.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fopencore-amr%2Ffiles%2Fopencore-amr%2F&ts=1442256558&use_mirror=netassist" "opencore-amr-0.1.5.tar.gz"
+	download "https://deac-riga.dl.sourceforge.net/project/opencore-amr/opencore-amr/opencore-amr-0.1.5.tar.gz" "opencore-amr-0.1.5.tar.gz"
 	cd "$PACKAGES"/opencore-amr-0.1.5 || exit
 	execute ./configure --prefix="${WORKSPACE}" --disable-shared --enable-static
 	execute make -j $MJOBS
@@ -288,7 +288,7 @@ if build "libtheora"; then
 fi
 
 if build "pkg-config"; then
-	download "http://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz" "pkg-config-0.29.2.tar.gz"
+	download "https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz" "pkg-config-0.29.2.tar.gz"
 	cd "$PACKAGES"/pkg-config-0.29.2 || exit
 	execute ./configure --silent --prefix="${WORKSPACE}" --with-pc-path="${WORKSPACE}"/lib/pkgconfig --with-internal-glib
 	execute make -j $MJOBS
@@ -322,8 +322,8 @@ if build "vid_stab"; then
 fi
 
 if build "x265"; then
-	download "https://bitbucket.org/multicoreware/x265/downloads/x265_3.4.tar.gz" "x265-3.4.tar.gz"
-	cd "$PACKAGES"/x265_* || exit
+	download "https://github.com/videolan/x265/archive/3.4.tar.gz" "x265-3.4.tar.gz"
+	cd "$PACKAGES"/x265-*/ || exit
 	cd source || exit
 	execute cmake -DCMAKE_INSTALL_PREFIX:PATH="${WORKSPACE}" -DENABLE_SHARED:bool=off .
 	execute make -j $MJOBS
@@ -343,7 +343,7 @@ if build "fdk_aac"; then
 fi
 
 if build "av1"; then
-	download "https://aomedia.googlesource.com/aom/+archive/69a986c7d4c354dfbccec570ccbc44688612c083.tar.gz" "av1.tar.gz" "av1"
+	download "https://aomedia.googlesource.com/aom/+archive/0f5cd05bb3d6209e2583ce682d1acd8e21ae24b8.tar.gz" "av1.tar.gz" "av1"
 	cd "$PACKAGES"/av1 || exit
 	mkdir -p "$PACKAGES"/aom_build
 	cd "$PACKAGES"/aom_build || exit
@@ -356,7 +356,7 @@ fi
 if build "zlib"; then
 	download "https://www.zlib.net/zlib-1.2.11.tar.gz" "zlib-1.2.11.tar.gz"
 	cd "$PACKAGES"/zlib-1.2.11 || exit
-	execute ./configure --prefix="${WORKSPACE}"
+	execute ./configure --static --prefix="${WORKSPACE}"
 	execute make -j $MJOBS
 	execute make install
 	build_done "zlib"
@@ -371,19 +371,30 @@ if build "openssl"; then
 	build_done "openssl"
 fi
 
+if build "srt"; then
+	download "https://github.com/Haivision/srt/archive/v1.4.1.tar.gz" "v1.4.1.tar.gz"
+	cd "$PACKAGES"/srt-1.4.1 || exit
+	export OPENSSL_ROOT_DIR="${WORKSPACE}"
+	export OPENSSL_LIB_DIR="${WORKSPACE}"/lib
+	export OPENSSL_INCLUDE_DIR="${WORKSPACE}"/include/
+	execute cmake "$PACKAGES"/srt-1.4.1 -DCMAKE_INSTALL_PREFIX:PATH="${WORKSPACE}" -DENABLE_SHARED=OFF -DENABLE_STATIC=ON -DENABLE_APPS=OFF
+	execute make install
+	build_done "srt"
+fi
+
 CFLAGS="-I$WORKSPACE/include"
 LDFLAGS="-L$WORKSPACE/lib"
 if command -v nvcc > /dev/null ; then
        if build "nv-codec"; then
-               download "https://github.com/FFmpeg/nv-codec-headers/releases/download/n9.1.23.0/nv-codec-headers-9.1.23.0.tar.gz" "nv-codec-headers-9.1.23.0.tar.gz"
-               cd "$PACKAGES"/nv-codec-headers-n9.1.23.0 || exit
-               sed -i  "s#PREFIX = /usr/local#PREFIX = ${WORKSPACE}#g" "$PACKAGES"/nv-codec-headers-n9.1.23.0/Makefile
+               download "https://github.com/FFmpeg/nv-codec-headers/releases/download/n10.0.26.0/nv-codec-headers-10.0.26.0.tar.gz" "nv-codec-headers-10.0.26.0.tar.gz"
+               cd "$PACKAGES"/nv-codec-headers-10.0.26.0 || exit
+               sed -i  "s#PREFIX = /usr/local#PREFIX = ${WORKSPACE}#g" "$PACKAGES"/nv-codec-headers-10.0.26.0/Makefile
                execute make install
                build_done "nv-codec"
        fi
        CFLAGS="$CFLAGS -I/usr/local/cuda/include"
        LDFLAGS="$LDFLAGS -L/usr/local/cuda/lib64"
-       ADDITIONAL_CONFIGURE_OPTIONS="$ADDITIONAL_CONFIGURE_OPTIONS --enable-cuda-nvcc --enable-cuvid --enable-nvenc --enable-libnpp"
+       ADDITIONAL_CONFIGURE_OPTIONS="$ADDITIONAL_CONFIGURE_OPTIONS --enable-cuda-nvcc --enable-cuvid --enable-nvenc --enable-libnpp  --enable-cuda-llvm"
 fi
 
 if [[ $SKIP_FFMPEG_BUILD == "yes" ]]; then
@@ -391,8 +402,8 @@ if [[ $SKIP_FFMPEG_BUILD == "yes" ]]; then
 fi
 
 build "ffmpeg"
-download "https://git.ffmpeg.org/gitweb/ffmpeg.git/snapshot/192d1d34eb3668fa27f433e96036340e1e5077a0.tar.gz" "ffmpeg-snapshot.tar.bz2"
-cd "$PACKAGES"/ffmpeg-192d1d3/ || exit
+download "https://ffmpeg.org/releases/ffmpeg-4.3.1.tar.bz2" "ffmpeg-4.3.1.tar.bz2"
+cd "$PACKAGES"/ffmpeg-4.3.1/ || exit
 # shellcheck disable=SC2086
 ./configure $ADDITIONAL_CONFIGURE_OPTIONS \
     --pkgconfigdir="$WORKSPACE/lib/pkgconfig" \
@@ -425,7 +436,8 @@ cd "$PACKAGES"/ffmpeg-192d1d3/ || exit
 	--enable-libopencore_amrnb \
 	--enable-filters \
 	--enable-libvidstab \
-	--enable-libaom
+	--enable-libaom \
+	--enable-libsrt
 
 execute make -j $MJOBS
 execute make install
